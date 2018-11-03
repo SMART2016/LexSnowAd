@@ -1,0 +1,97 @@
+Creating SSL cert for ADFS server:(Below steps are performed at the ADFS server entirely)
+ - Login as Administrator in the ADFS server
+ - Download the Powershell zip from https://gallery.technet.microsoft.com/scriptcenter/Self-signed-certificate-5920a7c6
+ - Extract the zip somewhere locally
+ - open powershell
+ - Run command:
+ 	- Import-Module .\New-SelfSignedCertificateEx.ps1
+ 	- New-SelfSignedCertificateEx.ps1 is the powershell script present in the zip downloaded above
+ - Run command to generate ssl cert:
+ 	- New-SelfSignedCertificateEx -Subject "CN=ADDC.thinknyx.com" -EKU "Server Authentication","Client Authentication" -KeyUsage "KeyEncipherment,DigitalSignature" -AllowSMIME -Path c:\AD-Server.pfx -Password (ConvertTo-SecureString "password" -AsPlainText -Force) -Exportable
+ - run >mmc on the promt to import the certificate created above.
+ 	- mmc : File --> Add or Remove Snap-ins --> select certificates  --> Add button --> select radio Computer account  --> Next button --> Finish button.
+ - Console Root (Left pane of mmc) --> Certificates --> Personal --> Right click --> All tasks --> Import... --> Next button --> Browse and select the .pfx file generated above --> Next button --> enter the password provided in the command above --> next button --> Select Personal --> Next button --> Finish
+ - Export the public key:
+ 		RightClick on the newly imported certificate --> All Tasks --> select Export... -->  next --> next --> Set the filename for cer and location  --> Next --> Finish.
+ - Import the Pub certificate generated above as a trusted root certificate:
+ 	Trusted Root Certification Authorities: (Left pane of mmc) --> expand and select Certificates --> Right click --> All Tasks --> Import...  --> Browse the public certificate created above --> finish.
+ - To trust other servers / Machines to ADFS we will have to import the public ssl certificates of other servers to the Trusted Root Certification Authorities of ADFS server.
+ 
+ 
+ Creating SSL certificates on other Servers:
+ - login as Administrator in the server
+ - Open powershell
+ - run below command:
+ 	-  New-SelfSignedCertificate -DnsName "client1.thinknyx.com" -CertStoreLocation "cert:\LocalMachine\My"
+ - run >mmc on the promt to import the certificate created above.
+ 	- mmc : File --> Add or Remove Snap-ins --> select certificates  --> Add button --> select radio Computer account  --> Next button --> Finish button.
+ - Export the public key:
+ 		RightClick on the newly imported certificate --> All Tasks --> select Export... -->  next --> next --> Set the filename for cer and location  --> Next --> Finish.
+ - Import the Pub certificate generated above as a trusted root certificate:
+ 	Trusted Root Certification Authorities: (Left pane of mmc) --> expand and select Certificates --> Right click --> All Tasks --> Import...  --> Browse the public certificate created above --> finish.
+ 
+ Import the Public certificate created for the Server above in ADFS Trusted root certificates in MMC:
+   - Login to ADFS server as Administrator 
+   - Import the Pub certificate generated above as a trusted root certificate:
+ 	Trusted Root Certification Authorities: (Left pane of mmc) --> expand and select Certificates --> Right click --> All Tasks --> Import...  --> Browse the public certificate created above --> finish.
+ 
+ 
+PowerShell command to install the web application server on client machine:
+  - Install-WindowsFeature Web-Server, Web-App-Dev, Web-Net-Ext45, Web-Asp-Net45, Web-Mgmt-Tools,Web-Mgmt-Console,NET-Framework-45-Features,NET-Framework-45-Core,NET-Framework-45-ASPNET
+  
+Install chrome on the client machine where web app above is installed:
+  - Login as Admin to the machine.
+  - Open powershell
+  - $LocalTempDir = $env:TEMP; $ChromeInstaller = "ChromeInstaller.exe"; (new-object System.Net.WebClient).DownloadFile('http://dl.google.com/chrome/install/375.126/chrome_installer.exe', "$LocalTempDir\$ChromeInstaller"); & "$LocalTempDir\$ChromeInstaller" /silent /install; $Process2Monitor =  "ChromeInstaller"; Do { $ProcessesFound = Get-Process | ?{$Process2Monitor -contains $_.Name} | Select-Object -ExpandProperty Name; If ($ProcessesFound) { "Still running: $($ProcessesFound -join ', ')" | Write-Host; Start-Sleep -Seconds 2 } else { rm "$LocalTempDir\$ChromeInstaller" -ErrorAction SilentlyContinue -Verbose } } Until (!$ProcessesFound)
+  - Open chrome and type http://<Domain_name>
+  - The webapp will open but this will not work with https.
+  - Enable https as below:
+  	- Open Server Manager --> Tools --> IIS Manager --> Open IIS manager window
+  	- IIS Manager Window: select the local machine server name --> Expand it --> click on sites and expand it --> Default Website (right click)  --> Select Edit Bindings --> Add button --> select https --> select the local public certificate created and exported earlier steps. --> ok
+  
+Configuring ADFS needs and AD managed service account
+- Go to the AD server
+- Open server manager --> tools --> Active Directory Users and Computers --> Right click Users --> New --> User --> New user window opens
+   - First Name: ADFS
+   - Last Name: MSA
+   - User Logon Name: ADFSMSA
+   --> Next button
+    --Add password and 
+    --select password never expires checkbox
+   --> Next --> Finish
+- On the configure ADFS window set the Managed user just created:
+	- Select the radio button Use an Existing user and find the user created above in the user finder and select it.
+	- Add the password for the user. --> Next
+	- Select Windows internal Database radio button --> Next
+	- Copy the powershell script for configuring ADFS next time --> Next.
+	- Click Configure button.
+	
+- check adfs in mmc:
+  - mmc : File --> Add or Remove Snap-ins --> ADFS management --> add
+  
+- Running and configuring the ADFS claim aware app in client machine:
+ - Claims-Aware Application Download: https://msdnshared.blob.core.windows.net/media/TNBlogsFS/prod.evol.blogs.technet.com/telligent.evolution.components.attachments/01/8598/00/00/03/64/54/88/SampApp%20and%20Rules.zip
+ - Current IIS web app location : C:\inetpub\wwwroot
+ - Copy the downloaded zip from above to C:\inetpub\wwwroot
+ - Extract the zip and it will have two zips inside SampApp.zip and SampAppRules.zip
+ - extract the content of SampApp.zip into C:\inetpub\wwwroot
+ - Need to edit the Web.config file inside C:\inetpub\wwwroot\SampApp
+ - Go to ADFS server and open powershell prompt and run below command:
+ 	- Get-AdfsCertificate -CertificateType Token-Signing | Select -ExpandProperty Thumbprint
+ 	- Above command will return a thumbprint copy that. [A1F16212A5AD6A591F8A1866179CDCEAB84730AA]
+ - Open the Web.config file inside C:\inetpub\wwwroot\SampApp
+ - Find the string "thumbprint" in the Web.config file and replace its value with the above acquired thumbprint.[Mostly there will be 3 occurences]
+ - find string "sts.contoso.com" in the Web.config file and replace it with ADFS server domain name Eg: ADDC.thinknyx.com[7 occurences most probably]
+ - find string "app1.contoso.com" in the Web.config file and replace it with domain name of machine where webapp is installed Eg: client1.thinknyx.com
+ - Extract the SampAppRules.zip and copy the rules files inside the zip in ADFS server machine somewhere.
+ - Go to C:\inetpub\wwwroot\SampApp\FederationMetadata\2007-06 in the machine where webapp is installed and open the FederationMetadata.xml file
+ 	- find string "app1.contoso.com" and replace it with domain name of machine where webapp is installed Eg: client1.thinknyx.com
+ - Run the below powershell command in ADFS server:[Adding trusted app to ADFS]
+ 		- Add-AdfsRelyingPartyTrust -Name "Sample Claims Aware Application" -IssuanceAuthorizationRulesFile c:\IssuanceAuthorizationRules.txt -IssuanceTransformRulesFile c:\IssuanceTransformRules.txt -MetadataUrl https://client1.thinknyx.com/sampapp/federationmetadata/2007-06/federationmetadata.xml
+ - Goto machine where webapp is installed:
+ 	- Add the webapp in IIS:
+ 		- Open Server Manager --> Tools --> IIS Manager --> Open IIS manager window
+ 		- IIS Manager Window: Select Application Pools --> Right click on Default App Pool (Right Pane) --> Select Advance setting --> 
+ 				-- Set Load User Profile = true
+ 		
+         		- IIS Manager Window: select the local machine server name --> Expand it --> click on sites and expand it --> Expand Default Website --> Right click SampApp web app --> Conver to Application
