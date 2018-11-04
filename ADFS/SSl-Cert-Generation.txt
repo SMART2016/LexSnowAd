@@ -95,3 +95,6 @@ Configuring ADFS needs and AD managed service account
  				-- Set Load User Profile = true
  		
          		- IIS Manager Window: select the local machine server name --> Expand it --> click on sites and expand it --> Expand Default Website --> Right click SampApp web app --> Conver to Application
+
+Powershell To Install chrome:
+$Path = $env:TEMP; $Installer = "chrome_installer.exe"; Invoke-WebRequest "https://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile $Path$Installer; Start-Process -FilePath $Path$Installer -Args "/silent /install" -Verb RunAs -Wait; Remove-Item $Path$Installer
