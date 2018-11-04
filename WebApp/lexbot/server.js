@@ -4,8 +4,11 @@ var querystring = require('querystring');
 var fs = require('fs');
 
 
-http.createServer(function(request, response){
+http.createServer(onRequest).listen(7000);
+
+function onRequest(request, response){
 pathName =url.parse(request.url).pathname;
+console.log(url)
 file = pathName.substr(1)
 console.log(pathName)
 fs.readFile(file, function(err, data){
@@ -16,7 +19,7 @@ if(err){
 }else
   // response.writeHead(200, {'Content-type':'text/plan'});
    response.write(data);
-   response.end( );
+   response.end();
 
 })
-}).listen(7000);
+}

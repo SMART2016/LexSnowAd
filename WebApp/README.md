@@ -19,3 +19,13 @@
   - copy the key.pem and cert.pem in 		
   - run the server as below:
   		- node http-server -S -C ~/work/LexSnowAd/WebApp/lexbot/cert.pem ~/work/LexSnowAd/WebApp/lexbot/.
+
+## Running the node server:
+  - go to the directory where server.js is present
+  - run command:
+    - node server.js
+  - If you want to run the server in hot reload mode do below:
+    - install nodemon:
+        > sudo npm install nodemon -g
+    - start server with below command:
+      > nodemon server.js

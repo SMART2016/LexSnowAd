@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Font Dependencies -->
+    <link href="./stylesheets/robo-style.css" rel="stylesheet" type="text/css">
+
+    <!-- Vuetify CSS Dependencies -->
+    <link href="./stylesheets/vuetify.css" rel="stylesheet" type="text/css">
+
+    <!-- LexWebUi CSS from dist directory -->
+    <link href="./stylesheets/lex-web-ui.css" rel="stylesheet" type="text/css">
+    <!-- page specific LexWebUi styling -->
+    <style type="text/css">
+      #lex-web-ui-app { display: flex; height: 100%; width: 100%; }
+      body, html { overflow-y: auto; overflow-x: hidden; }
+    .message-bot .message-bubble{ background-color:paleturquoise !important;}
+    </style>
+  </head>
+  <body>
+    <!-- application will be dynamically mounted here -->
+    <div id="lex-web-ui"></div>
+
+    <!--
+      Vue, Vuex, Vuetifiy and AWS SDK dependencies must be loaded before lex-web-ui.js.
+      Loading from third party CDN for quick testing
+    -->
+    <script src="./javascripts/vue.js"></script>
+    <script src="./javascripts/vuex.js"></script>
+    <script src="./javascripts/vuetify.js"></script>
+    <script src="./javascripts/aws-sdk-2.149.0.min.js"></script>
+
+    <!-- LexWebUi Library from dist directory -->
+    <script src="./javascripts/lex-web-ui.js"></script>
+
+    <!-- instantiate the web ui with a basic config -->
+    <script>
+      // LexWebUi supports numerous configuration options. Here
+      // is an example using just a couple of the required options.
+      var config = {
+        cognito: {
+          // Your Cognito Pool Id - this is required to provide AWS credentials
+          poolId: 'us-east-1:6bb57ad6-b634-4b69-a9e9-180524573047'
+        },
+        lex: {
+          // Lex Bot Name in your account
+          botName: 'TestBot',
+      initialText: "This is Ahana How may i Help you !!! Current Option Supported : Create Ticket",
+      initialSpeechInstruction: "Say 'Create Ticket' to get started."
+        },
+    ui: {    
+      pageTitle: "Ahana",
+      toolbarTitle: "Ahana",
+      toolbarColor: 'blue',
+      enableLogin: false
+    }
+      };
+      // load the LexWebUi component
+      var lexWebUi = new LexWebUi.Loader(config);
+      // instantiate Vue
+      new Vue({
+        el: '#lex-web-ui',
+        store: lexWebUi.store,
+        template: '<div id="lex-web-ui-app"><lex-web-ui/></div>',
+      });
+    </script>
+  </body>
+</html>
