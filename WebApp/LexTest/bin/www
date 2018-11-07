@@ -7,27 +7,56 @@
 var app = require('../app');
 var debug = require('debug')('lextest:server');
 var http = require('http');
+var https = require('https');
+var fs = require('fs')
+var path = require('path');
 
+//---------HTTP server commented ------------------
 /**
  * Get port from environment and store in Express.
  */
-
-var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
+// var port = normalizePort(process.env.PORT || '3000');
+// app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+//var server = http.createServer(app);
+
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
+// server.listen(port);
+// server.on('error', onError);
+// server.on('listening', onListening);
+//---------HTTP server commented ------------------
+
+
+
+//---------------HTTPS server configs STARTS--------------------------
+
+//Defining https port
+var port= normalizePort(process.env.HTTPSPORT || '3443');
+app.set('port',port);
+
+//Https ssl options
+const httpsOptions = {
+    cert: fs.readFileSync(path.join(__dirname,'ssl','server.crt')),
+    key: fs.readFileSync(path.join(__dirname,'ssl','server.key')),
+};
+
+/**
+ * Create and configure HTTPS server.
+ */
+var server = https.createServer(httpsOptions, app)
+server.listen(port)
 server.on('error', onError);
 server.on('listening', onListening);
+
+//---------------HTTPS server configs ENDS--------------------------
 
 /**
  * Normalize a port into a number, string, or false.

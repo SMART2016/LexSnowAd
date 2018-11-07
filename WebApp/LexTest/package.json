@@ -19,6 +19,11 @@
     "passport": "*",
     "passport-http": "*",
     "passport-local": "*",
-    "passport-saml": "*"
+    "passport-saml": "*",
+    "dotenv": "^4.0.0",
+    "file-system-cache": "^1.0.5",
+    "passport-saml-metadata": "^1.2.0",
+    "passport-wsfed-saml2": "^3.0.2",
+    "pem-promise": "^1.0.0"
   }
 }

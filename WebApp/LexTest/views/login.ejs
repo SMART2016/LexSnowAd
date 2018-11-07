@@ -7,12 +7,19 @@
     
     <% include layout %>
   </head>
-  <body align ="center">
-   <iframe id="inlineFrameExample"
-    title="Inline Frame Example"
-    width="500"
-    height="500"
-    frameborder="0"
-    src="/loginwin.html"
-    >
+  <body align="center">
+   
+    <h2 class="page-header" >Login</h2>
+<p align="justified">Please login below</p>
+<form method="post" action="/users/login">
+  <div class="form-group">
+    <label>Username</label>
+    <input  name="username" type="text" placeholder="Enter Username" align ="center" size="35"/>
+  </div>
+  <div class="form-group">
+    <label>Password</label>
+    <input  name="password" type="password" placeholder="Enter Password"  size="35"/>
+  </div>
+  <input class="btn btn-primary" type="submit" name="submit" value="Login"/>
+</form>
 </html>

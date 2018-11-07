@@ -8,6 +8,7 @@ var passport = require('passport')
 var localStrategy = require('passport-local').Strategy;
 var samlStrategy = require('passport-saml').Strategy;
 var bodyParser = require('body-parser');
+var fs = require('fs')
 
 //The routes for input request
 var indexRouter = require('./routes/index');
